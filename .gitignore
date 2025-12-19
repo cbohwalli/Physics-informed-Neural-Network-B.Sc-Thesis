@@ -1,31 +1,25 @@
-# --- Python Specific ---
+# Python Bytecode
 __pycache__/
 *.py[cod]
-*$py.class
-.venv/
-env/
-venv/
-ENV/
 
-# --- Machine Learning Artifacts ---
+# Virtual Environment
+.python-version
+venv/
+env/
+
+# Data (Protect your CSVs)
+data/raw/
+data/processed/
+*.csv
+
+# Model Weights (Very Important!)
 *.pt
 *.pth
-*.h5
-*.joblib
 
-# --- Data and Results ---
-data/raw/*.csv
-data/processed/*.csv
-results/*.csv
-results/tables/
-
-# --- System & IDE Specific ---
+# OS/IDE specific
 .vscode/
 .DS_Store
-*.Zone.Identifier
-.ipynb_checkpoints/
 
-# --- Local Environment ---
-.env
-# Local python env name
-.python-version
+# Build/Analysis artifacts
+.ipynb_checkpoints/
+results/tables/
