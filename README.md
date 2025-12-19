@@ -25,7 +25,7 @@ The project utilizes the **Electric Motor Temperature Dataset** from Kaggle.
 
 ## Development Environment
 
-- **Operating System:** Ubuntu 22.04 (or similar Linux distribution)  
+- **Operating System:** Ubuntu 22.04 
 - **Python Version:** 3.10.12  
 - **GPU (Recommended):** NVIDIA CUDA-enabled GPU for faster training of PINN and FNN models
 
