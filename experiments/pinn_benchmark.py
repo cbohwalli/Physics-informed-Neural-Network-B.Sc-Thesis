@@ -154,8 +154,13 @@ def run_cv_experiment(X, P, Y, groups, exp_config):
             
             # Aggregate validation RMSE across all batches in the fold
             val_rmse = np.sqrt(np.mean(np.concatenate(val_errs)**2))
+
+            # --- Early Stopping ---
             if val_rmse < best_rmse:
                 best_rmse = val_rmse
+                epochs_no_improve = 0
+            else:
+                epochs_no_improve += 1
         
         fold_rmses.append(best_rmse)
         print(f"Fold {fold+1} Best RMSE: {best_rmse:.4f}")
