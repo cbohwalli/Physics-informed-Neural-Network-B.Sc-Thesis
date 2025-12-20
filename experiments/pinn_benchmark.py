@@ -8,9 +8,9 @@ from sklearn.model_selection import GroupKFold
 
 # Internal Imports
 from src.preprocessing.pipeline import preprocess_pinn
-from src.models.ffnn_class import Feedforward_NN
-from src.models.pinn_utils import compute_physics_loss
-from src.models.train_utils import make_schedule
+from src.models.FNN.FNN_class import Feedforward_NN
+from src.models.PINN.compute_physics_loss import compute_physics_loss
+from src.models.PINN.train_utils import make_schedule
 
 # --------------------------- Config ---------------------------
 CONFIG = {
@@ -164,16 +164,16 @@ def run_cv_experiment(X, P, Y, groups, exp_config):
 
 # --------------------------- Main Loop ---------------------------
 if __name__ == "__main__":
-    df = pd.read_csv("dataset.csv")
+    df = pd.read_csv("data/processed/dataset.csv")
     df_proc, input_cols = preprocess_pinn(df)
     X, P, Y, groups = prepare_pinn_tensors(df_proc, input_cols)
 
     experiment_configs = [
+        {"curriculum_type": "constant", "schedule_method": "constant"},
         {"curriculum_type": "low_data_up", "schedule_method": "sigmoid"},
         {"curriculum_type": "low_phy_up", "schedule_method": "sigmoid"},
         {"curriculum_type": "low_data_up", "schedule_method": "linear"},
         {"curriculum_type": "low_phy_up", "schedule_method": "linear"},
-        {"curriculum_type": "constant", "schedule_method": "constant"},
     ]
 
     all_results = []
