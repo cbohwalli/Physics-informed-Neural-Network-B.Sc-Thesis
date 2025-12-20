@@ -52,7 +52,7 @@ def compute_physics_loss(T_pred, P_seq, dt=0.5):
     rhs_Tw = (Pw_k + (Ty_k - Tw_k)/R_YW + (Tt_k - Tw_k)/R_TW + (Tm_k - Tw_k)/R_WM)/C_W
     rhs_Tm = ((Tt_k - Tm_k)/R_TM + (Tw_k - Tm_k)/R_WM + (Ta_k - Tm_k)/R_MA)/C_M
 
-    rhs = torch.stack([rhs_Ty, rhs_Tt, rhs_Tw, rhs_Tm], dim=1)
+    rhs = torch.stack([rhs_Tm, rhs_Ty, rhs_Tw, rhs_Tt], dim=1)
     
     # Residual = (dT/dt) - Physics_Equation
     res = dT_pred - rhs

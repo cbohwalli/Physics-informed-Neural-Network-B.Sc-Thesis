@@ -114,7 +114,10 @@ def run_cv_experiment(X, P, Y, groups, exp_config):
                                 batch_size=CONFIG["BATCH_SIZE"], shuffle=False)
 
         model = Feedforward_NN(input_dim=X.shape[1]).to(device)
-        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
+
+        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+
         mse_crit = torch.nn.MSELoss()
         best_rmse = float('inf')
 
@@ -153,7 +156,10 @@ def run_cv_experiment(X, P, Y, groups, exp_config):
                     val_errs.append((y_p - y_t).cpu().numpy())
             
             # Aggregate validation RMSE across all batches in the fold
-            val_rmse = np.sqrt(np.mean(np.concatenate(val_errs)**2))
+            val_loss = np.mean(np.concatenate(val_errs)**2)
+            val_rmse = np.sqrt(val_loss)
+
+            scheduler.step(val_loss)
 
             # --- Early Stopping ---
             if val_rmse < best_rmse:
@@ -162,14 +168,14 @@ def run_cv_experiment(X, P, Y, groups, exp_config):
             else:
                 epochs_no_improve += 1
 
-            if epochs_no_improve >= EARLY_STOP_PATIENCE:
+            if epochs_no_improve >= CONFIG["EARLY_STOP_PATIENCE"]:
                 print(f"Early stopping triggered at epoch {epoch+1}")
                 break 
         
         fold_rmses.append(best_rmse)
         print(f"Fold {fold+1} Best RMSE: {best_rmse:.4f}")
 
-    return mean(fold_rmses)
+    return np.mean(fold_rmses)
 
 # --------------------------- Main Loop ---------------------------
 if __name__ == "__main__":
@@ -178,11 +184,11 @@ if __name__ == "__main__":
     X, P, Y, groups = prepare_pinn_tensors(df_proc, input_cols)
 
     experiment_configs = [
-        {"curriculum_type": "constant", "schedule_method": "constant"},
+        {"curriculum_type": "low_phy_up", "schedule_method": "linear"},
         {"curriculum_type": "low_data_up", "schedule_method": "sigmoid"},
         {"curriculum_type": "low_phy_up", "schedule_method": "sigmoid"},
         {"curriculum_type": "low_data_up", "schedule_method": "linear"},
-        {"curriculum_type": "low_phy_up", "schedule_method": "linear"},
+        {"curriculum_type": "constant", "schedule_method": "constant"},
     ]
 
     all_results = []
