@@ -60,7 +60,7 @@ def prepare_pinn_tensors(df_processed, input_cols):
     Returns:
         X: Model inputs (Standardized) - Shape: (N_windows, N_features)
         P: Physics sequences (Raw SI) - Shape: (N_windows, Seq_len, 6)
-        Y: Target sequences (Standardized) - Shape: (N_windows, 4, Seq_len)
+        Y: Target sequences - Shape: (N_windows, 4, Seq_len)
     """
     X_list, P_list, Y_list, groups_list = [], [], [], []
     
@@ -84,7 +84,7 @@ def prepare_pinn_tensors(df_processed, input_cols):
         p_seq = np.stack([raw_vals[:,0], raw_vals[:,1], I_mag, n_norm, raw_vals[:,5], raw_vals[:,6]], axis=1)
         P_list.append(p_seq[indices])
         
-        # 3. Targets: Standardized temperatures reshaped to (Channels, Time) for Torch Conv/Loss
+        # 3. Targets: Temperatures reshaped to (Channels, Time) for Torch Conv/Loss
         # Transform from (N, Seq, 4) -> (N, 4, Seq)
         Y_list.append(np.transpose(cycle_df[CONFIG["TARGET_COLUMNS"]].values[indices], (0, 2, 1)))
         
@@ -111,7 +111,7 @@ def run_cv_experiment(X, P, Y, groups, exp_config):
         train_loader = DataLoader(TensorDataset(X[train_idx], P[train_idx], Y[train_idx]), 
                                   batch_size=CONFIG["BATCH_SIZE"], shuffle=True)
         val_loader = DataLoader(TensorDataset(X[val_idx], P[val_idx], Y[val_idx]), 
-                                batch_size=CONFIG["BATCH_SIZE"])
+                                batch_size=CONFIG["BATCH_SIZE"], shuffle=False)
 
         model = Feedforward_NN(input_dim=X.shape[1]).to(device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)

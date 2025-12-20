@@ -31,7 +31,7 @@ def compute_physics_loss(T_pred, P_seq, dt=0.5):
     P_seq:  (Batch, Seq_len, 6) -> [res, copper, I, n, ambient, coolant]
     """
     # Extract Temperatures
-    Ty, Tt, Tw, Tm = T_pred[:,0,:], T_pred[:,1,:], T_pred[:,2,:], T_pred[:,3,:]
+    Tm, Ty, Tw, Tt = T_pred[:,0,:], T_pred[:,1,:], T_pred[:,2,:], T_pred[:,3,:]
     
     # Extract Physics Inputs
     P_res, P_cu, I, n, Ta, Tc = [P_seq[:,:,i] for i in range(6)]
