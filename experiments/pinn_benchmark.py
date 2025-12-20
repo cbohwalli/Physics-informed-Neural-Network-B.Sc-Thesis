@@ -161,6 +161,10 @@ def run_cv_experiment(X, P, Y, groups, exp_config):
                 epochs_no_improve = 0
             else:
                 epochs_no_improve += 1
+
+            if epochs_no_improve >= patience:
+                print(f"Early stopping triggered at epoch {epoch+1}")
+                break 
         
         fold_rmses.append(best_rmse)
         print(f"Fold {fold+1} Best RMSE: {best_rmse:.4f}")
