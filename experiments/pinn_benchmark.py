@@ -162,7 +162,7 @@ def run_cv_experiment(X, P, Y, groups, exp_config):
             else:
                 epochs_no_improve += 1
 
-            if epochs_no_improve >= patience:
+            if epochs_no_improve >= EARLY_STOP_PATIENCE:
                 print(f"Early stopping triggered at epoch {epoch+1}")
                 break 
         
