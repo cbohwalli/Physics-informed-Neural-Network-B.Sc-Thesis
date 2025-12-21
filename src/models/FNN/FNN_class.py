@@ -4,7 +4,7 @@ import torch.nn as nn
 # Model definition
 # ---------------------------
 class Feedforward_NN(nn.Module):
-    def __init__(self, input_dim, hidden_dim=1024, num_layers=4, output_dim=4*120, activation="ReLU"):
+    def __init__(self, input_dim, hidden_dim=512, num_layers=12, output_dim=4*120, activation="SiLU"):
         super().__init__()
         
         act_fn = getattr(nn, activation)()
