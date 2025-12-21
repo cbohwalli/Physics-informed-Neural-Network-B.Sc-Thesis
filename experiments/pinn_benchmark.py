@@ -27,31 +27,6 @@ CONFIG = {
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# --------------------------- Curriculum Factory ---------------------------
-def get_curriculum_factors(epoch, config):
-    """
-    Determines lambda_data and lambda_phy based on the experiment type.
-    """
-    c_type = config["curriculum_type"]
-    method = config["schedule_method"]
-    
-    if c_type == "constant":
-        return CONFIG["TARGET_LAMBDA_DATA"], CONFIG["TARGET_LAMBDA_PHY"]
-    
-    # Create the progress factor (0.0 to 1.0)
-    sched_fn = make_schedule(method=method, epochs=CONFIG["NUM_EPOCHS"])
-    factor = sched_fn(epoch)
-    
-    if c_type == "low_phy_up":
-        # Start with full data, gradually add physics
-        return CONFIG["TARGET_LAMBDA_DATA"], factor * CONFIG["TARGET_LAMBDA_PHY"]
-    
-    elif c_type == "low_data_up":
-        # Start with full physics, gradually add data
-        return factor * CONFIG["TARGET_LAMBDA_DATA"], CONFIG["TARGET_LAMBDA_PHY"]
-    
-    return CONFIG["TARGET_LAMBDA_DATA"], CONFIG["TARGET_LAMBDA_PHY"]
-
 # --------------------------- Data Preparation ---------------------------
 def prepare_pinn_tensors(df_processed, input_cols):
     """
@@ -97,12 +72,12 @@ def prepare_pinn_tensors(df_processed, input_cols):
             np.array(groups_list))
 
 # --------------------------- Training Function ---------------------------
-def run_cv_experiment(X, P, Y, groups, exp_config):
+def run_cv_experiment(X, P, Y, groups):
     """
     Executes a 5-Fold Group Cross-Validation experiment using a specific 
     curriculum learning strategy to balance data-driven and physics-informed gradients.
     """
-    print(f"\n>>> Running Experiment: {exp_config['curriculum_type']} | {exp_config['schedule_method']}")
+    print("Start Running PINN Experiment")
     kfold = GroupKFold(n_splits=5)
     fold_rmses = []
 
@@ -122,10 +97,11 @@ def run_cv_experiment(X, P, Y, groups, exp_config):
         best_rmse = float('inf')
 
         for epoch in range(CONFIG["NUM_EPOCHS"]):
-            # Update loss weights based on the chosen curriculum schedule
-            l_data, l_phy = get_curriculum_factors(epoch, exp_config)
-            
+     
             model.train()
+            epoch_data_loss = 0
+            epoch_phys_loss = 0
+
             for xb, pb, yb in train_loader:
                 xb, pb, yb = xb.to(device), pb.to(device), yb.to(device)
                 optimizer.zero_grad()
@@ -140,10 +116,15 @@ def run_cv_experiment(X, P, Y, groups, exp_config):
                 loss_phy = compute_physics_loss(y_pred, pb)
                 
                 # Composite Gradient: Total Loss = λ_data*L_data + λ_phy*L_phy
-                loss = (l_data * loss_data) + (l_phy * loss_phy)
+                loss = (loss_data) + (loss_phy)
                 
                 loss.backward()
                 optimizer.step()
+
+                epoch_data_loss += loss_data.item()
+                epoch_phys_loss += loss_phy.item()
+
+            print(f"Epoch {epoch+1} | Data Loss: {epoch_data_loss/len(train_loader):.6f} | Physics Loss: {epoch_phys_loss/len(train_loader):.6f}")
 
             # Validation: Compute standard RMSE for performance tracking
             model.eval()
@@ -183,18 +164,8 @@ if __name__ == "__main__":
     df_proc, input_cols = preprocess_pinn(df)
     X, P, Y, groups = prepare_pinn_tensors(df_proc, input_cols)
 
-    experiment_configs = [
-        {"curriculum_type": "low_phy_up", "schedule_method": "linear"},
-        {"curriculum_type": "low_data_up", "schedule_method": "sigmoid"},
-        {"curriculum_type": "low_phy_up", "schedule_method": "sigmoid"},
-        {"curriculum_type": "low_data_up", "schedule_method": "linear"},
-        {"curriculum_type": "constant", "schedule_method": "constant"},
-    ]
 
-    all_results = []
-    for cfg in experiment_configs:
-        avg_rmse = run_cv_experiment(X, P, Y, groups, cfg)
-        all_results.append({**cfg, "avg_rmse": avg_rmse})
+    run_cv_experiment(X,P,Y,groups)
 
-    pd.DataFrame(all_results).to_csv("results/pinn_curriculum_comparison.csv", index=False)
-    print("\nAll experiments complete. Results saved to results/pinn_curriculum_comparison.csv")
+    pd.DataFrame(all_results).to_csv("results/pinn_benchmark.csv", index=False)
+    print("\nPINN experiments complete. Results saved to results/pinn_benchmark.csv")
