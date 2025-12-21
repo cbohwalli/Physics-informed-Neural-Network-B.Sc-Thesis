@@ -106,7 +106,7 @@ def main():
 
     # 4. Final Export for Thesis
     results_df = pd.DataFrame(all_results)
-    final_output_path = "results/fnn_benchmark_final.csv"
+    final_output_path = "results/fnn_gridsearch_final.csv"
     results_df.sort_values(by="Avg_RMSE", ascending=True).to_csv(final_output_path, index=False)
     
     print("\n" + "="*30)
