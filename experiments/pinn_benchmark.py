@@ -80,6 +80,7 @@ def run_cv_experiment(X, P, Y, groups):
     print("Start Running PINN Experiment")
     kfold = GroupKFold(n_splits=5)
     fold_rmses = []
+    fold_mae = []
 
     for fold, (train_idx, val_idx) in enumerate(kfold.split(X, Y, groups=groups)):
         # DataLoaders: pb (physics batch) is used for loss, not as model input
@@ -139,12 +140,14 @@ def run_cv_experiment(X, P, Y, groups):
             # Aggregate validation RMSE across all batches in the fold
             val_loss = np.mean(np.concatenate(val_errs)**2)
             val_rmse = np.sqrt(val_loss)
+            val_mae = np.mean(np.abs(np.concatenate(val_errs)))
 
             scheduler.step(val_loss)
 
             # --- Early Stopping ---
             if val_rmse < best_rmse:
                 best_rmse = val_rmse
+                best_mae = val_mae
                 epochs_no_improve = 0
             else:
                 epochs_no_improve += 1
@@ -154,9 +157,10 @@ def run_cv_experiment(X, P, Y, groups):
                 break 
         
         fold_rmses.append(best_rmse)
-        print(f"Fold {fold+1} Best RMSE: {best_rmse:.4f}")
+        fold_mae.append(best_mae)
+        print(f"Fold {fold+1} RMSE: {best_rmse:.4f} | MAE: {best_mae:.4f}")
 
-    return np.mean(fold_rmses)
+    return fold_rmses, fold_mae
 
 # --------------------------- Main Loop ---------------------------
 if __name__ == "__main__":
@@ -164,8 +168,25 @@ if __name__ == "__main__":
     df_proc, input_cols = preprocess_pinn(df)
     X, P, Y, groups = prepare_pinn_tensors(df_proc, input_cols)
 
+    # Run experiment and capture results
+    rmses, maes = run_cv_experiment(X, P, Y, groups)
 
-    run_cv_experiment(X,P,Y,groups)
+    # Create a summary DataFrame
+    results_df = pd.DataFrame({
+        "fold": np.arange(1, len(rmses) + 1),
+        "rmse": rmses,
+        "mae": maes
+    })
 
-    pd.DataFrame(all_results).to_csv("results/pinn_benchmark.csv", index=False)
+    # Add a row for the average across all folds
+    avg_row = pd.DataFrame([{
+        "fold": "Average", 
+        "rmse": np.mean(rmses), 
+        "mae": np.mean(maes)
+    }])
+    
+    results_df = pd.concat([results_df, avg_row], ignore_index=True)
+
+    # Save to CSV
+    results_df.to_csv("results/pinn_benchmark.csv", index=False)
     print("\nPINN experiments complete. Results saved to results/pinn_benchmark.csv")
