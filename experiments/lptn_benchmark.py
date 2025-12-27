@@ -21,12 +21,12 @@ def main():
     TARGET_COLUMNS = ["pm", "stator_yoke", "stator_winding", "stator_tooth"]
     INPUT_COLUMNS = [c for c in df.columns if c not in TARGET_COLUMNS + ["timestamp", "profile_id"]]
     
-    # 2. Sequence Data for 120-step Trajectory
-    print("Creating 120-step trajectory sequences...")
+    # 2. Sequence Data for 60-step Trajectory
+    print("Creating 60-step trajectory sequences...")
     dataset, groups, _ = create_output_sequence(
         df, 
         target_columns=TARGET_COLUMNS, 
-        sequence_length=120,
+        sequence_length=60,
         fully_sequenced=True
     )
 
@@ -64,18 +64,17 @@ def main():
 
             # Initial Conditions (Ground Truth at t=0)
             # TARGET_COLUMNS = ["pm", "stator_yoke", "stator_winding", "stator_tooth"]
-            # yb shape is (4, 120). Indexing: yb[channel, time]
+            # yb shape is (4, 60). Indexing: yb[channel, time]
             T0 = (yb[1, 0].item(), yb[3, 0].item(), yb[2, 0].item(), yb[0, 0].item())
 
             # LPTN Simulation
             Ty_p, Tt_p, Tw_p, Tm_p = lptn_simulate(Py, Pt, Pw, Ta, Tc, T0, steps, dt=0.5)
             
-            # 1. Stack predictions: (4, 120)
+            # 1. Stack predictions: (4, 60)
             # Order must match TARGET_COLUMNS: pm, yoke, winding, tooth
             y_pred = np.vstack([Tm_p, Ty_p, Tw_p, Tt_p])
 
             # 2. Slice both to remove the first timestep [:, 1:]
-            # y_true becomes (4, 119), y_pred becomes (4, 119)
             y_true_eval = yb.numpy()[:, 1:]
             y_pred_eval = y_pred[:, 1:]
 

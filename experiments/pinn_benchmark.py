@@ -14,7 +14,7 @@ from src.models.PINN.train_utils import make_schedule
 
 # --------------------------- Config ---------------------------
 CONFIG = {
-    "SEQUENCE_LENGTH": 120,
+    "SEQUENCE_LENGTH": 60,
     "NUM_EPOCHS": 50,
     "BATCH_SIZE": 64,
     "EARLY_STOP_PATIENCE": 10,
@@ -43,7 +43,7 @@ def prepare_pinn_tensors(df_processed, input_cols):
         num_timesteps = len(cycle_df)
         if num_timesteps < CONFIG["SEQUENCE_LENGTH"]: continue
         
-        # Generate sliding window indices (e.g., 0-119, 1-120, etc.)
+        # Generate sliding window indices (e.g., 0-59, 1-60, etc.)
         indices = np.arange(num_timesteps - CONFIG["SEQUENCE_LENGTH"] + 1)[:, None] + np.arange(CONFIG["SEQUENCE_LENGTH"])
         
         # 1. Standardized NN Inputs: Take the feature vector at the START of each window
