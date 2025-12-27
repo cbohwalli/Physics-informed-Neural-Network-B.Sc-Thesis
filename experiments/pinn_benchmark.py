@@ -107,8 +107,10 @@ def run_cv_experiment(X, P, Y, groups):
                 xb, pb, yb = xb.to(device), pb.to(device), yb.to(device)
                 optimizer.zero_grad()
                 
+                t0_batch = yb[:, :, 0] # Initial condition for the anchor
+
                 # Forward Pass
-                y_pred = model(xb)
+                y_pred = model(xb, t0_batch)
                 
                 # Hybrid Loss Calculation:
                 # 1. Data-driven Loss (MSE on targets, excluding t=0 initial condition)
@@ -132,9 +134,15 @@ def run_cv_experiment(X, P, Y, groups):
             val_errs = []
             with torch.no_grad():
                 for xb, _, yb in val_loader:
-                    # Model evaluation skips the first timestep (Initial Condition)
-                    y_p = model(xb.to(device))[:,:,1:]
-                    y_t = yb.to(device)[:,:,1:]
+                    # 1. Prepare inputs
+                    xb = xb.to(device)
+                    yb = yb.to(device)
+                    t0_batch = yb[:, :, 0] # Initial condition for the anchor
+
+                    # 2. Predict and slice to remove t=0
+                    y_p = model(xb, t0_batch)[:, :, 1:]
+                    y_t = yb[:, :, 1:]
+
                     val_errs.append((y_p - y_t).cpu().numpy())
             
             # Aggregate validation RMSE across all batches in the fold
