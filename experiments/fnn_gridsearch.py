@@ -62,7 +62,7 @@ def main():
     dataset, groups, input_dim = create_output_sequence(
     df_processed_final, 
     target_columns=["stator_yoke", "stator_winding", "stator_tooth", "pm"],
-    sequence_length=120
+    sequence_length=60
     )
 
     print(f"Data ready. Input Dimension: {input_dim}")
