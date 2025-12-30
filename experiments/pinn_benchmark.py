@@ -154,6 +154,17 @@ def run_cv_experiment(X, P, Y, groups):
                 best_rmse = val_rmse
                 best_mae = val_mae
                 epochs_no_improve = 0
+
+                # Save the best model for this fold
+                model_path = f"results/saved_pinn/best_model_fold_{fold+1}.pt"
+                torch.save({
+                    'fold': fold + 1,
+                    'epoch': epoch + 1,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'rmse': best_rmse
+                }, model_path)
+                print(f"--> Saved best model for Fold {fold+1} at Epoch {epoch+1}")
             else:
                 epochs_no_improve += 1
 

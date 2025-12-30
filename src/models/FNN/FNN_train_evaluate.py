@@ -45,7 +45,6 @@ def train_and_evaluate_model(model, train_loader, val_loader, fold, device,
     best_val_loss = float('inf')
     best_metrics = {}
     early_stop_counter = 0
-    model_path = f"best_model_fold_{fold + 1}.pt"
 
     for epoch in range(epochs):
         # --- Training Phase ---
@@ -74,7 +73,6 @@ def train_and_evaluate_model(model, train_loader, val_loader, fold, device,
         if val_results["loss"] < best_val_loss:
             best_val_loss = val_results["loss"]
             best_metrics = val_results
-            torch.save(model.state_dict(), model_path)
             early_stop_counter = 0
         else:
             early_stop_counter += 1
@@ -83,6 +81,4 @@ def train_and_evaluate_model(model, train_loader, val_loader, fold, device,
             print(f"--> Early stopping triggered at epoch {epoch+1}")
             break
 
-    # Load the best state before returning
-    model.load_state_dict(torch.load(model_path))
     return best_metrics["rmse"], best_metrics["mae"]
