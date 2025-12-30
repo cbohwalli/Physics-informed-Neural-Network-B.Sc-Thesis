@@ -19,8 +19,6 @@ CONFIG = {
     "BATCH_SIZE": 64,
     "EARLY_STOP_PATIENCE": 10,
     "DT_SECONDS": 0.5,
-    "TARGET_LAMBDA_DATA": 1.0,
-    "TARGET_LAMBDA_PHY": 1.0,
     "TARGET_COLUMNS": ["pm", "stator_yoke", "stator_winding", "stator_tooth"],
     "PHYSICS_COLS": ["residual_loss_raw", "copper_loss_raw", "i_q_raw", "i_d_raw", "motor_speed_raw", "ambient_raw", "coolant_raw"]
 }
@@ -46,10 +44,10 @@ def prepare_pinn_tensors(df_processed, input_cols):
         # Generate sliding window indices (e.g., 0-59, 1-60, etc.)
         indices = np.arange(num_timesteps - CONFIG["SEQUENCE_LENGTH"] + 1)[:, None] + np.arange(CONFIG["SEQUENCE_LENGTH"])
         
-        # 1. Standardized NN Inputs: Take the feature vector at the START of each window
+        # Standardized NN Inputs: Take the feature vector at the START of each window
         X_list.append(cycle_df[input_cols].values[indices[:, 0]])
         
-        # 2. Physics Sequences: Extract raw values for the ODE residual loss
+        # Physics Sequences: Extract raw values for the ODE residual loss
         raw_vals = cycle_df[CONFIG["PHYSICS_COLS"]].values
         # Derived physical quantities: Current Magnitude (Amps) and Normalized Speed (0-1)
         I_mag = np.sqrt(raw_vals[:, 2]**2 + raw_vals[:, 3]**2) # sqrt(iq^2 + id^2)
@@ -59,7 +57,7 @@ def prepare_pinn_tensors(df_processed, input_cols):
         p_seq = np.stack([raw_vals[:,0], raw_vals[:,1], I_mag, n_norm, raw_vals[:,5], raw_vals[:,6]], axis=1)
         P_list.append(p_seq[indices])
         
-        # 3. Targets: Temperatures reshaped to (Channels, Time) for Torch Conv/Loss
+        # Targets: Temperatures reshaped to (Channels, Time) for Torch Conv/Loss
         # Transform from (N, Seq, 4) -> (N, 4, Seq)
         Y_list.append(np.transpose(cycle_df[CONFIG["TARGET_COLUMNS"]].values[indices], (0, 2, 1)))
         
@@ -134,12 +132,11 @@ def run_cv_experiment(X, P, Y, groups):
             val_errs = []
             with torch.no_grad():
                 for xb, _, yb in val_loader:
-                    # 1. Prepare inputs
                     xb = xb.to(device)
                     yb = yb.to(device)
                     t0_batch = yb[:, :, 0] # Initial condition for the anchor
 
-                    # 2. Predict and slice to remove t=0
+                    # Predict and slice to remove t=0
                     y_p = model(xb, t0_batch)[:, :, 1:]
                     y_t = yb[:, :, 1:]
 

@@ -22,7 +22,8 @@ def split_residual(P_res, I, n):
 def lptn_simulate(Py, Pt, Pw, Ta, Tc, T0, steps, dt=0.5):
     """Euler-integration solver for the 4-node LPTN."""
     Ty, Tt, Tw, Tm = [np.zeros(steps) for _ in range(4)]
-    Ty[0], Tt[0], Tw[0], Tm[0] = T0
+
+    Tm[0], Ty[0], Tw[0], Tt[0] = T0
 
     for k in range(steps - 1):
         dTy = (Py[k] + (Tt[k]-Ty[k])/R_YT + (Tw[k]-Ty[k])/R_YW + (Tc[k]-Ty[k])/R_YC) / C_Y

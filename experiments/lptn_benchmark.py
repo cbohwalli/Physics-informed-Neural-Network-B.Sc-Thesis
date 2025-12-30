@@ -65,20 +65,20 @@ def main():
             # Initial Conditions (Ground Truth at t=0)
             # TARGET_COLUMNS = ["pm", "stator_yoke", "stator_winding", "stator_tooth"]
             # yb shape is (4, 60). Indexing: yb[channel, time]
-            T0 = (yb[1, 0].item(), yb[3, 0].item(), yb[2, 0].item(), yb[0, 0].item())
+            T0 = (yb[0, 0].item(), yb[1, 0].item(), yb[2, 0].item(), yb[3, 0].item())
 
             # LPTN Simulation
             Ty_p, Tt_p, Tw_p, Tm_p = lptn_simulate(Py, Pt, Pw, Ta, Tc, T0, steps, dt=0.5)
             
-            # 1. Stack predictions: (4, 60)
+            # Stack predictions: (4, 60)
             # Order must match TARGET_COLUMNS: pm, yoke, winding, tooth
             y_pred = np.vstack([Tm_p, Ty_p, Tw_p, Tt_p])
 
-            # 2. Slice both to remove the first timestep [:, 1:]
+            # Slice both to remove the first timestep [:, 1:]
             y_true_eval = yb.numpy()[:, 1:]
             y_pred_eval = y_pred[:, 1:]
 
-            # 3. Calculate errors on the sliced data
+            # Calculate errors on the sliced data
             errors = y_pred_eval - y_true_eval
             rmse_list.append(np.sqrt(np.mean(errors**2)))
             mae_list.append(np.mean(np.abs(errors)))
@@ -93,7 +93,7 @@ def main():
         })
         print(f"Fold {fold+1} Finished: RMSE={fold_rmse:.4f}")
 
-    # 5. Final Statistics and CSV Export
+    # Final Statistics and CSV Export
     results_df = pd.DataFrame(fold_summaries)
     
     # Calculate Mean Row

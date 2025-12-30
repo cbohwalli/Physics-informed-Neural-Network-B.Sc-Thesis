@@ -58,7 +58,7 @@ def main():
     df = pd.read_csv("data/processed/dataset.csv")
     # Removes redudant features, Adds EMWA and standardize input features
     df_processed_final , final_input_cols = preprocess_fnn(df)
-    # Create Sequences: This strictly handles the 120-step output windowing
+    # Create Sequences: This strictly handles the 60-step output windowing
     dataset, groups, input_dim = create_output_sequence(
     df_processed_final, 
     target_columns=["stator_yoke", "stator_winding", "stator_tooth", "pm"],
