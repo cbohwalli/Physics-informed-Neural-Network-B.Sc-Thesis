@@ -88,6 +88,7 @@ python experiments/lptn_benchmark.py
 │   ├── raw/            # Original measures_v2.csv
 │   └── processed/      # Processed dataset used for analysis and experiments
 ├── experiments/        # Main benchmark execution scripts (PINN, LPTN, FNN)
+├── results/        
 ├── src/
 │   ├── models/         # Architecture definitions (PINN, LPTN, FNN)
 │   └── preprocessing/  # Data pipeline and feature engineering
