@@ -10,7 +10,6 @@ from sklearn.model_selection import GroupKFold
 from src.preprocessing.pipeline import preprocess_pinn
 from src.models.FNN.FNN_class import Feedforward_NN
 from src.models.PINN.compute_physics_loss import compute_physics_loss
-from src.models.PINN.train_utils import make_schedule
 
 # --------------------------- Config ---------------------------
 CONFIG = {
