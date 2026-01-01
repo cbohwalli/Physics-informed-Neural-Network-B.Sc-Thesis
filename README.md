@@ -34,8 +34,8 @@ The project utilizes the **Electric Motor Temperature Dataset** from Kaggle.
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/cbohwalli/Physics-informed-Neural-Network-B.Sc-Thesis.git
-cd Physics-informed-Neural-Network-B.Sc-Thesis
+git clone https://github.com/cbohwalli/Physics-Informed-Neural-Network-B.Sc-Thesis.git
+cd Physics-Informed-Neural-Network-B.Sc-Thesis
 ```
 
 2. Create and Activate Your Environment
